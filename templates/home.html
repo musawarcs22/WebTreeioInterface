@@ -11,6 +11,7 @@
         body {
         background-color:#00ccff;
         }
+        
     </style>
     <style type="text/css">
       /* Set the size of the div element that contains the map */
@@ -23,154 +24,87 @@
 
     </style>
     <script>
+        // helps to open the info window 
         function infoCallback(infowindow, marker) {
             return function() { infowindow.open(map, marker); };
         }
       // Initialize and add the map
       function initMap() {
-          // The location of Uluru
-        var uluru = { lat: 32.344, lng: 711.036 };
+        // Using ajax request to get the data from server side to client side //
+        // This data is used to plot markers and info windows on the google maps //
           $.ajax({
-  						type: "POST",
-  						url:'/list',
-  						data: JSON.stringify(),
-  						dataType: 'json'
-					}).done(function(data) { 
-						console.log(data);
-                        console.log("****************************************************");
+                type: "POST",
+                url:'/getRecordsFromFirebase',
+                data: JSON.stringify(),
+                dataType: 'json'
+            }).done(function(data) { 
+                //console.log("****************************************************");
 
-                        for (key in data) {
-                        if (data.hasOwnProperty(key)) {
-                            console.log("%c "+key + " = " + data[key],"color:cyan");
-                            console.log(data[key].mImageTitle)
-                            console.log(data[key].mlatitude)
-                            console.log(data[key].mlongitude)
-                        }
-                        console.log("----------------------------------------------------");
-
-                        }
-                        // The map, centered at Uluru
-        const map = new google.maps.Map(document.getElementById("map"), {
-          zoom: 4,
-          center: uluru,
-        });
-        // The marker, positioned at Uluru
-
-        
-
-         
-         for (key in data) {
-                let title = data[key].mImageTitle;
-                let discription = data[key].mImageDiscription;
-                let latitude = parseFloat(data[key].mlatitude, 10);
-                let longitude = parseFloat(data[key].mlongitude, 10);
-                let imageURL = data[key].imageUrl
-                uluru = { lat: latitude, lng: longitude};
-                var marker = new google.maps.Marker({
-                position: uluru,
-                map: map,
-                title: key,
-                label: title,
+                // The location of Uluru (This will focus the map)
+                var uluru = { lat: 32.344, lng: 71.036 };
+                // The map, centered at Uluru
+                const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 4,
+                center: uluru,
                 });
-                
-                infowindow = new google.maps.InfoWindow({
-                content: "<div class=\"mydiv\"  style='float:left'><img src="+imageURL+"></div><div style='float:right; padding: 10px;'><b>Title: </b>"+title+"<br/><b>Discription: </b>"+discription+"<br/><b>Tree id: </b>"+key+"</div>"
-                });
-                // Attach it to the marker we've just added
-                google.maps.event.addListener(marker, 'click', infoCallback(infowindow, marker));
-               // marker.addListener("click", () => {
-                //console.log(marker.getTitle())
-                //infowindow.open({
-                //anchor: marker,
-                //map,
-                //shouldFocus: false,
-                //    });
-               // });
-                
-            
-            console.log(key)
-          }
-          
-         
-        
+                // The marker, positioned at Uluru
+
+
+                //console.log(data);
+                for (key in data) {
+                    //console.log("----------------------------------------------------");
+                    //console.log("%c "+key + " = " + data[key],"color:cyan");
+                    //console.log(data[key].mImageTitle)
+                    //console.log(data[key].mlatitude)
+                    //console.log(data[key].mlongitude)
+                    //console.log("----------------------------------------------------");
+
+                    let title = data[key].mImageTitle;
+                    let discription = data[key].mImageDiscription;
+                    let latitude = parseFloat(data[key].mlatitude, 10);
+                    let longitude = parseFloat(data[key].mlongitude, 10);
+                    let imageURL = data[key].imageUrl
+                    uluru = { lat: latitude, lng: longitude};
+                    var marker = new google.maps.Marker({
+                    position: uluru,
+                    map: map,
+                    title: title,
+                    //label: title,
+                    });
+                    infowindow = new google.maps.InfoWindow({
+                    content: "<div class=\"mydiv\"  style='float:left'><img src="+imageURL+"></div><div style='float:right; padding: 10px;'><b>Title: </b>"+title+"<br/><b>Discription: </b>"+discription+"<br/><b>Tree id: </b>"+key+"</div>"
+                    });
+                    // Attach it to the marker we've just added
+                    google.maps.event.addListener(marker, 'click', infoCallback(infowindow, marker));     
+                    
+                }
 						
-					});
-           
-               
+					});        
       }           
-        
-   
     </script>
 </head>
 
 <body>
-    <nav class="navbar navbar-default">
+    <nav class="navbar navbar-default" style="background-color: #99ebff;">
         <div class="container-fluid">
+        
             <div class="navbar-header">
-                <a class="navbar-brand" href="#">
-                <img src="/static/Images/logo2.jpeg" class="rounded" alt="Logo" style="width:40px;">
-                </a>
+                <a class="navbar-brand" href="#"><span class="glyphicon glyphicon-home">Home</a>
             </div>
-            <div class="navbar-header">
-                <a class="navbar-brand" href="#">Home</a>
-            </div>
-            <ul class="nav navbar-nav">
-                <li     ><a href="/login">Login</a></li>
-            </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Log Out</a></li>
             </ul>
         </div>
     </nav>
     <div class="container-fluid">
-        <div id="username"></div>
-
-        <h3>My Google Maps Demo</h3>
+        <h3>Your Plantation Record</h3>
         <!--The div element for the map -->
         <div id="map"></div>
-
         <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
         <script
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC9Wc2-DuICjkBBTQT77HWekCbaHx33enY&callback=initMap&libraries=&v=weekly"
         async
         ></script>
-    <script>
-       // A $( document ).ready() block.
- /*   $( document ).ready(function() {
-        console.log( "ready!" );
-
-        $.ajax({
-  						type: "POST",
-  						url:'/list',
-  						data: JSON.stringify(),
-  						dataType: 'json'
-					}).done(function(data) { 
-						console.log(data);
-                        console.log("****************************************************");
-
-                        for (key in data) {
-                        if (data.hasOwnProperty(key)) {
-                            console.log("%c "+key + " = " + data[key],"color:cyan");
-                            console.log(data[key].mImageTitle)
-                            console.log(data[key].mlatitude)
-                            console.log(data[key].mlongitude)
-                        }
-                        console.log("----------------------------------------------------");
-
-                        }
-						
-					});
-         
-    });
-
-   */ 
-
-         
-
-
-        
-    </script>
-    
 </body>
 
 

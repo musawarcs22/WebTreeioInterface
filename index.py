@@ -2,8 +2,7 @@ from flask import Flask
 from flask import render_template
 from flask import request
 from flask import session
-from flask import redirect, url_for, jsonify
-import sqlite3 as sql
+from flask import redirect, url_for
 import pyrebase
 import json
 
@@ -31,11 +30,17 @@ def login():
       password = request.form['password']
       
       print(email+password)
-      try:
-            auth.sign_in_with_email_and_password(email, password)
-            #user_id = auth.get_account_info(user['idToken'])
-            #session['usr'] = user_id
-            return render_template('home.html')
+      try:  
+            user = auth.sign_in_with_email_and_password(email, password)
+            user_id = auth.get_account_info(user['idToken'])
+            session['usr'] = user_id
+            #
+            try:
+                if (session['usr']):
+                    return render_template('home.html')
+            except:
+                unsuccessful = 'Please Login'
+                return render_template('login.html', umessage=unsuccessful)
       except:
             unsuccessful = 'Please check your credentials'
             return render_template('login.html', umessage=unsuccessful)
@@ -44,65 +49,27 @@ def login():
 
 @app.route('/logout')
 def logout():
-   return render_template('login.html')
+    try:
+        session.pop('usr',None)
+        return render_template('login.html')
+    except:
+        pass
 
-@app.route('/newrecord',methods = ['POST', 'GET'])
-def addrec():
-   if request.method == 'POST':
-      try:
-         nm = request.form['nm']
-         addr = request.form['add']
-         city = request.form['city']
-         pin = request.form['pin']
-         with sql.connect("database.db") as con:
-            cur = con.cursor()
-            #cur.execute("INSERT INTO students (name,addr,city,pin) VALUES (?,?,?,?)",(nm,addr,city,pin) )
-            cur.execute("INSERT INTO mystudents (name,addr,city,pin) VALUES (?,?,?,?)",(nm,addr,city,pin) )
-            con.commit()
-            msg = "Record successfully added"
-      except:
-         con.rollback()
-         msg = "error in insert operation"
-      
-      finally:
-         return render_template("result.html",msg = msg)
-         con.close()
-
-@app.route('/delrecord',methods = ['POST', 'GET'])
-
-#For Deleting Records
-def delrecord():
-   s_id = None
-   if request.method == 'POST' or request.method == 'GET':
-      try:
-         s_id = request.form['student_id']         
-         with sql.connect("database.db") as con:
-            cur = con.cursor()
-            #cur.execute("DELETE TABLE mystudents")
-
-            cur.execute("DELETE FROM mystudents WHERE student_id = (?)",s_id)
-            con.commit()
-            msg = "Record successfully deleted"
-            return redirect(url_for('list'))
-      except:
-         con.rollback()
-         msg = "error in delete operation"
-         return redirect(url_for('list'))
-      finally:
-         return redirect(url_for('list'))
-         con.close()
-
-@app.route('/list', methods=['POST'])
-def list():
+@app.route('/getRecordsFromFirebase', methods=['POST'])
+def getRecordsFromFirebase():
+    
+   UserId = "+923099721779" #I was suppose to get this value after phone authentication using OTP
+   # but pyrebase doesn't support phone authentication. That's why I have hardcoded it. In future, 
+   # I will add an option for the users using the mobile app to link their accounts to their web 
+   # app so that I may get the user id using emails of the users.
    db = firebase.database()
-   records = db.child("+923099721779").get()
-   print(records)
-   print(records.val()) # {"Morty": {"name": "Mortimer 'Morty' Smith"}, "Rick": {"name": "Rick Sanchez"}}
-   
-   print("+++++++++++++++++++++++++++++++++++++++++++\n\n\n")
-   all_users = db.child("+923099721779").get()
+   records = db.child(UserId).get()
+   #print(records)
+   #print(records.val()) 
+   #print("+++++++++++++++++++++++++++++++++++++++++++\n\n\n")
+   all_users = db.child(UserId).get()
    for user in all_users.each():
-      print(user.key()) # -MgtBeNdzTQMn0wIaPDZ
+      print(user.key()) # some thing like: -MgtBeNdzTQMn0wIaPDZ
     
       records = user.val().get("mImageTitle")
       print(records)
@@ -113,42 +80,14 @@ def list():
       print("\n\n****************************\n\n")
       #print(user.val()) # {....}
       
-   print(json.dumps(all_users.val()))
+   #print(json.dumps(all_users.val()))
    data = json.dumps(all_users.val())
-   #data = jsonify(data)
-   print(data)
+   #print(data)
    return data
 
 
 
-@app.route('/process_qtc', methods=['POST', 'GET'])
-def process_qt_calculation():
-
-    if request.method == "POST":
-        qtc_data = request.get_json()
-        print(qtc_data)
- 
-    results = {'processed': 'true'}
-    return jsonify(results)
-
-
-"""
-@app.route('/')
-def home():
-   return render_template('home.html')
-"""
 
 if __name__ == '__main__':
+   app.secret_key = "1^#$1212121asd/asdad/ad23435##$@#$" 
    app.run(debug = True)
-
-
-#### create table 
-"""
-import sqlite3
-conn = sqlite3.connect('database.db')
-print("Opened database successfully")
-conn.execute('CREATE TABLE mystudents (student_id INTEGER PRIMARY KEY,name TEXT, addr TEXT, city TEXT, pin TEXT)')
-print("Table created successfully")
-conn.close()
-print("asdasda")
-"""
