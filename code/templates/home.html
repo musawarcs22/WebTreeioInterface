@@ -11,6 +11,19 @@
         body {
         background-color:#00ccff;
         }
+        .imgdiv, img{
+            width: 300px;
+            height: auto;
+            
+        }
+        .txtdiv{
+            width: 300px;
+            height: auto;
+            float:right; 
+            padding: 10px;
+            margin-top: 100px;
+            
+        }
         
     </style>
     <style type="text/css">
@@ -72,7 +85,7 @@
                     //label: title,
                     });
                     infowindow = new google.maps.InfoWindow({
-                    content: "<div class=\"mydiv\"  style='float:left'><img src="+imageURL+"></div><div style='float:right; padding: 10px;'><b>Title: </b>"+title+"<br/><b>Discription: </b>"+discription+"<br/><b>Tree id: </b>"+key+"</div>"
+                    content: "<div><div class=\"imgdiv\"  style='float:left'><img src="+imageURL+"></div><div class=\"txtdiv\"><b>Title: </b>"+title+"<br/><b>Discription: </b>"+discription+"<br/><b>Tree id: </b>"+key+"</div></div>"
                     });
                     // Attach it to the marker we've just added
                     google.maps.event.addListener(marker, 'click', infoCallback(infowindow, marker));     
@@ -87,7 +100,6 @@
 <body>
     <nav class="navbar navbar-default" style="background-color: #99ebff;">
         <div class="container-fluid">
-        
             <div class="navbar-header">
                 <a class="navbar-brand" href="#"><span class="glyphicon glyphicon-home">Home</a>
             </div>
